@@ -146,13 +146,14 @@ int main(int argc, char **argv)
     	if (!bBatchMode && ((k % dEvents) == 0)) cerr << k << "\r";
 
       for(kind=0; kind<simTypes; kind++){
+        elecIndex.clear(); // clear out the electron list
+        gamIndex.clear(); // clear out the photon list
+        topology = false; // init. the event topology cut
+
         if(kind == 0) nRows = input->GetNRows("EVNT");
         if(kind == 1) nRows = input->GetNRows("GSIM");
         cout<<"Rows "<<kind<<"  "<<nRows<<endl;
         if(nRows >= minRows){
-          elecIndex.clear(); // clear out the electron list
-          gamIndex.clear(); // clear out the photon list
-          topology = false; // init. the event topology cut
           for (j = 0; j < nRows; j++) {
             // select the PID selection scheme
             if(kind==1){
@@ -169,7 +170,7 @@ int main(int argc, char **argv)
           } // for loop for searching for particle in topology
           // check event topology
           topology = (elecIndex.size()>=MAX_ELECTRONS && gamIndex.size()>=MAX_PHOTONS);
-          if(topology && t->Q2(kind) > CUT_Q2 && t->W(kind) > CUT_W && t->Nu(kind)/EBEAM < CUT_NU) {
+          if(topology && t->Q2(kind) > CUT_Q2 && t->W(kind) > CUT_W) {
             candCtr++;
             if(kind==1){
               myVertex->SetXYZ(t->X(0, kind), t->Y(0, kind), t->Z(0, kind));
