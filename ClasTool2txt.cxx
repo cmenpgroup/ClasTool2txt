@@ -54,7 +54,7 @@ int main(int argc, char **argv)
     extern char *optarg;
     int c;
     extern int optind;
-    
+
     int i, j, k;
     int nRows, kind;
     int simTypes = 1; // number of simulation banks (1: data, 2: reconstructed + generated)
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
     int minRows = MAX_ELECTRONS + MAX_PHOTONS; // number of particles in an event to start filtering
 
     TString catPid;
-    
+
     bool bBatchMode = false;    // quiet mode
     bool simul_key = false;  // simulation flag (true = simulation, false = data)
     bool mflag = true; // cut flag for GetCategorization(k,tt,mflag)
@@ -75,20 +75,20 @@ int main(int argc, char **argv)
 
     char *inFile;
     string outFile = "ClasTool2txt.txt";
-    
+
     bool topology = false;
     vector<int> elecIndex;
     vector<int> gamIndex;
 
     TVector3 *myVertex;
-    
+
     float timeStart = clock(); // start time
-    
+
     TClasTool *input = new TClasTool();
     input->InitDSTReader("ROOTDSTR");
-  
+
     TIdentificator *t = new TIdentificator(input);
-    
+
     for (i = 0; i < argc; ++i) cerr << argv[i] << " "; cerr << endl;
     while ((c = getopt(argc,argv, "o:M:D:c:t:Sih")) != -1 ) {
         switch (c) {
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
                 PrintUsage(argv[0]);
                 exit(0);
                 break;
-                
+
             default:
                 cerr << "Unrecognized argument: " << optarg << endl;
                 PrintUsage(argv[0]);
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
                 break;
         }
     }
-    
+
     // check target selection
     switch(tgt_key){
         case 1: target = "C"; break;
@@ -120,91 +120,83 @@ int main(int argc, char **argv)
         default: cout<<"Unknown target "<<target<<endl; exit(0); break;
     }
     cout<<"Analyzing " << target << " target data"<<endl;
-    
+
     if(simul_key) simTypes = 2;
 
     for (i = optind; i < argc; ++i) {
         inFile = argv[i]; // process all arguments on command line.
         if (*inFile != '-') { // we have a file to process
-            cout << "Analyzing file " << inFile << endl; // let user know which file is being processed            
+            cout << "Analyzing file " << inFile << endl; // let user know which file is being processed
             input->Add(inFile); // read file into ClasTool object
             nfiles++; // increment file counter
         }
     }
 
     Long_t nEntries = (Long_t) input->GetEntries(); // get total number of events
-    
+
     cout<<"Analyzing "<<nEntries<<" from "<<nfiles<< " files."<<endl; // print out stats
-  
+
     input->Next();
-  
+
     k = 0; // event counter
-    
+
     if(MaxEvents == 0) MaxEvents = nEntries; // if user does not set max. number of events, set to nEntries
-    
+
     while (k < MaxEvents) {
     	if (!bBatchMode && ((k % dEvents) == 0)) cerr << k << "\r";
 
-        for(kind=0; kind<simTypes; kind++){
-            if(kind == 0) nRows = input->GetNRows("EVNT");
-            if(kind == 1) nRows = input->GetNRows("GSIM");
-            cout<<"Rows "<<kind<<"  "<<nRows<<endl;
-            if(nRows >= minRows){
-              elecIndex.clear(); // clear out the electron list
-              gamIndex.clear(); // clear out the photon list
-            
-              topology = false; // init. the event topology cut
-	      for (j = 0; j < nRows; j++) {
-
-                // select the PID selection scheme
-                if(kind==1){
-                    catPid = t -> GetCategorizationGSIM(j);
-                }else{
-                    switch(cat_key){
-                        case 0: catPid = t -> GetCategorizationEVNT(j); break;
-                        case 1: catPid = t -> GetCategorization(j,target.c_str(),mflag); break;
-                        default: cout<<"Incorrect PID categorization.  Try again."<<endl; exit(0); break;
-                    }
+      for(kind=0; kind<simTypes; kind++){
+        if(kind == 0) nRows = input->GetNRows("EVNT");
+        if(kind == 1) nRows = input->GetNRows("GSIM");
+        cout<<"Rows "<<kind<<"  "<<nRows<<endl;
+        if(nRows >= minRows){
+          elecIndex.clear(); // clear out the electron list
+          gamIndex.clear(); // clear out the photon list
+          topology = false; // init. the event topology cut
+          for (j = 0; j < nRows; j++) {
+            // select the PID selection scheme
+            if(kind==1){
+              catPid = t -> GetCategorizationGSIM(j);
+            }else{
+              switch(cat_key){
+                  case 0: catPid = t -> GetCategorizationEVNT(j); break;
+                  case 1: catPid = t -> GetCategorization(j,target.c_str(),mflag); break;
+                  default: cout<<"Incorrect PID categorization.  Try again."<<endl; exit(0); break;
                 }
-                if(catPid.EqualTo("electron")) elecIndex.push_back(j);
-                if(catPid.EqualTo("gamma")) gamIndex.push_back(j);
-              }
-
-              // check event topology
-              topology = (elecIndex.size()>=MAX_ELECTRONS && gamIndex.size()>=MAX_PHOTONS);
-
-              if(topology && t->Q2(kind) > CUT_Q2 && t->W(kind) > CUT_W && t->Nu(kind)/EBEAM < CUT_NU) {
-                candCtr++;
-
-                if(kind==1){
-                    myVertex->SetXYZ(t->X(0, kind), t->Y(0, kind), t->Z(0, kind));
-                }else{
-                    myVertex = t->GetCorrectedVert();
-                }
-
-		cout << t->NEvent() << "\t" << kind << endl;
-	        for (j = 0; j < nRows; j++) {
-		  cout << t->Id(j,kind) <<"\t";	
-		  cout << t->Betta(j,kind) << "\t";
-		  cout << t->Px(j, kind) << "\t";
-		  cout << t->Py(j, kind) << "\t";
-    	 	  cout << t->Pz(j, kind) << "\t";
-    		  cout << myVertex->X() << "\t";
-    	 	  cout << myVertex->Y() << "\t"; 
-    		  cout << myVertex->Z() << endl;
-               }
-	    }
-          }
-        }
-    	k++; // increment event counter
-	cout<<"A"<<endl;
-        input->Next();
-	cout<<"B"<<endl;
+            }
+            if(catPid.EqualTo("electron")) elecIndex.push_back(j);
+            if(catPid.EqualTo("gamma")) gamIndex.push_back(j);
+          } // for loop for searching for particle in topology
+          // check event topology
+          topology = (elecIndex.size()>=MAX_ELECTRONS && gamIndex.size()>=MAX_PHOTONS);
+          if(topology && t->Q2(kind) > CUT_Q2 && t->W(kind) > CUT_W && t->Nu(kind)/EBEAM < CUT_NU) {
+            candCtr++;
+            if(kind==1){
+              myVertex->SetXYZ(t->X(0, kind), t->Y(0, kind), t->Z(0, kind));
+            }else{
+              myVertex = t->GetCorrectedVert();
+            }
+            cout << t->NEvent() << "\t" << kind << endl;
+            for (j = 0; j < nRows; j++) {
+              cout << t->Id(j,kind) <<"\t";
+              cout << t->Betta(j,kind) << "\t";
+              cout << t->Px(j, kind) << "\t";
+              cout << t->Py(j, kind) << "\t";
+              cout << t->Pz(j, kind) << "\t";
+              cout << myVertex->X() << "\t";
+              cout << myVertex->Y() << "\t";
+              cout << myVertex->Z() << endl;
+            } // for loop for printing
+          } // if to check topology and cuts
+        } // if to check nRows > minRows
+      } // for loop for kind counter
+      k++; // increment event counter
+      cout<<"A"<<endl;
+      input->Next();
+      cout<<"B"<<endl;
     }
-    
     float timeStop = clock();
     PrintAnalysisTime(timeStart,timeStop);
-
     return 0;
 }
 
@@ -232,7 +224,7 @@ void PrintAnalysisTime(float tStart, float tStop){
     seconds = fmod(minutes,1);
     minutes = minutes-seconds;
     seconds = seconds*60;
-    
+
     if (minutes==0){
         cout<<endl<<"Completed in "<<seconds<<" seconds."<<endl<<endl;
     }
@@ -244,7 +236,7 @@ void PrintAnalysisTime(float tStart, float tStop){
 int GetPID(string partName, int kind){
 
     int ret = 0;
-    
+
     if(kind==0){
         if(partName.compare("Electron")==0){
             ret = PDG_ELECTRON;
@@ -294,4 +286,3 @@ int GetPID(string partName, int kind){
     }
     return ret;
 }
-
