@@ -58,7 +58,6 @@ int main(int argc, char **argv)
     int i, j, k;
     int nRows, kind;
     int simTypes = 1; // number of simulation banks (1: data, 2: reconstructed + generated)
-    int candCtr = 0;
     int dEvents = 1000; // increment of events for processing print statement
     int MaxEvents = 0; // max. number of events to process
     int nfiles = 0; // number of processed files
@@ -68,8 +67,6 @@ int main(int argc, char **argv)
 
     bool bBatchMode = false;    // quiet mode
     bool simul_key = false;  // simulation flag (true = simulation, false = data)
-    bool mflag = true; // cut flag for GetCategorization(k,tt,mflag)
-    int cat_key = 0; // PID categorization 0 = EVNT (default), 1 = Full
     int tgt_key = 1;  // intitialize target flag 1 = Carbon (default), 2 = Iron, 3 = Lead
     string target; // solid target name
 
@@ -90,12 +87,11 @@ int main(int argc, char **argv)
     TIdentificator *t = new TIdentificator(input);
 
     for (i = 0; i < argc; ++i) cerr << argv[i] << " "; cerr << endl;
-    while ((c = getopt(argc,argv, "o:M:D:c:t:Sih")) != -1 ) {
+    while ((c = getopt(argc,argv, "o:M:D:t:Sih")) != -1 ) {
         switch (c) {
             case 'o': outFile = optarg; break;
             case 'M': MaxEvents = atoi(optarg); break;
             case 'D': dEvents = atoi(optarg); break;
-            case 'c': cat_key = atoi(optarg); break;
             case 't': tgt_key = atoi(optarg); break;
             case 'S': simul_key = true; break;
             case 'i': bBatchMode = true; break;
@@ -153,25 +149,15 @@ int main(int argc, char **argv)
         if(kind == 0) nRows = input->GetNRows("EVNT");
         if(kind == 1) nRows = input->GetNRows("GSIM");
         cout<<"Rows "<<kind<<"  "<<nRows<<endl;
-        if(nRows >= minRows){
-          for (j = 0; j < nRows; j++) {
-            // select the PID selection scheme
-            if(kind==1){
-              catPid = t -> GetCategorizationGSIM(j);
-            }else{
-              switch(cat_key){
-                  case 0: catPid = t -> GetCategorizationEVNT(j); break;
-                  case 1: catPid = t -> GetCategorization(j,target.c_str(),mflag); break;
-                  default: cout<<"Incorrect PID categorization.  Try again."<<endl; exit(0); break;
-                }
-            }
+        if(nRows >= minRows){ // check that the minimum number of particles in event
+          for (j = 0; j < nRows; j++) { // count particles in topology
+            catPid = t -> GetCategorizationParticle(j,kind);
             if(catPid.EqualTo("electron")) elecIndex.push_back(j);
             if(catPid.EqualTo("gamma")) gamIndex.push_back(j);
           } // for loop for searching for particle in topology
           // check event topology
           topology = (elecIndex.size()>=MAX_ELECTRONS && gamIndex.size()>=MAX_PHOTONS);
           if(topology && t->Q2(kind) > CUT_Q2 && t->W(kind) > CUT_W) {
-            candCtr++;
             if(kind==1){
               myVertex->SetXYZ(t->X(0, kind), t->Y(0, kind), t->Z(0, kind));
             }else{
