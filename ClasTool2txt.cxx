@@ -77,7 +77,7 @@ int main(int argc, char **argv)
     vector<int> elecIndex;
     vector<int> gamIndex;
 
-    TVector3 *myVertex;
+    TVector3 *myVertex = new TVector3(0., 0., 0.); // constructor is necessary
 
     float timeStart = clock(); // start time
 
@@ -162,14 +162,16 @@ int main(int argc, char **argv)
             }
             cout << t->NEvent() << "\t" << kind << endl;
             for (j = 0; j < nRows; j++) {
-              cout << t->Id(j,kind) <<"\t";
-              cout << t->Betta(j,kind) << "\t";
-              cout << t->Px(j, kind) << "\t";
-              cout << t->Py(j, kind) << "\t";
-              cout << t->Pz(j, kind) << "\t";
-              cout << myVertex->X() << "\t";
-              cout << myVertex->Y() << "\t";
-              cout << myVertex->Z() << endl;
+              cout << setw(10) << (Int_t) t->Id(j, kind)
+		            << fixed << setprecision(5)
+                << setw(10) << t->Betta(j, kind)
+                << setprecision(3)
+                << setw(10) << t->Px(j, kind)
+                << setw(10) << t->Py(j, kind)
+                << setw(10) << t->Pz(j, kind)
+                << setw(10) << myVertex->X()
+                << setw(10) << myVertex->Y()
+                << setw(10) << myVertex->Z() << endl;              
             } // for loop for printing
           } // if to check topology and cuts
         } // if to check nRows > minRows
