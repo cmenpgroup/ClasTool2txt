@@ -132,7 +132,7 @@ int main(int argc, char **argv)
 
     cout<<"Analyzing "<<nEntries<<" from "<<nfiles<< " files."<<endl; // print out stats
 
-    input->Next();
+    input->Next(); // load the first event
 
     if(MaxEvents == 0) MaxEvents = nEntries; // if user does not set max. number of events, set to nEntries
 
@@ -145,7 +145,6 @@ int main(int argc, char **argv)
 
         if(kind == 0) nRows = input->GetNRows("EVNT");
         if(kind == 1) nRows = input->GetNRows("GSIM");
-        cout<<"Rows "<<kind<<"  "<<nRows<<endl;
         if(nRows >= minRows){ // check that the minimum number of particles in event
           for (j = 0; j < nRows; j++) { // count particles in topology
             catPid = t -> GetCategorizationParticle(j,kind);
@@ -160,7 +159,7 @@ int main(int argc, char **argv)
             }else{
               myVertex = t->GetCorrectedVert();
             }
-            cout << t->NEvent() << "\t" << kind << endl;
+            cout << (Int_t) t->NEvent() << "\t" << kind << endl;
             for (j = 0; j < nRows; j++) {
               cout << setw(10) << (Int_t) t->Id(j, kind)
 		            << fixed << setprecision(5)
@@ -171,14 +170,12 @@ int main(int argc, char **argv)
                 << setw(10) << t->Pz(j, kind)
                 << setw(10) << myVertex->X()
                 << setw(10) << myVertex->Y()
-                << setw(10) << myVertex->Z() << endl;              
+                << setw(10) << myVertex->Z() << endl;
             } // for loop for printing
           } // if to check topology and cuts
         } // if to check nRows > minRows
       } // for loop for kind counter
-      cout<<"A"<<endl;
-      input->Next();
-      cout<<"B"<<endl;
+      input->Next(); // load the next event
     }
     float timeStop = clock();
     PrintAnalysisTime(timeStart,timeStop);
