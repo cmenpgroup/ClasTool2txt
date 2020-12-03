@@ -61,6 +61,8 @@ int main(int argc, char **argv)
     int dEvents = 1000; // increment of events for processing print statement
     int MaxEvents = 0; // max. number of events to process
     int nfiles = 0; // number of processed files
+    int genCtr = 0; // counter for generated (kind=1) events
+    int recCtr = 0; // counter for reconstructed (kind=0) events
     int minRows = MAX_ELECTRONS + MAX_PHOTONS; // number of particles in an event to start filtering
 
     TString catPid;
@@ -158,8 +160,10 @@ int main(int argc, char **argv)
           topology = (elecIndex.size()>=MAX_ELECTRONS && gamIndex.size()>=MAX_PHOTONS);
           if(topology && t->Q2(kind) > CUT_Q2 && t->W(kind) > CUT_W) {
             if(kind==1){
+              genCtr++;
               myVertex->SetXYZ(t->X(0, kind), t->Y(0, kind), t->Z(0, kind));
             }else{
+              recCtr++;
               myVertex = t->GetCorrectedVert();
             }
             txtOut << (Int_t) t->NEvent() << "\t" << kind << endl;
@@ -181,6 +185,8 @@ int main(int argc, char **argv)
       input->Next(); // load the next event
     }
     txtOut.close();
+    cout<<"Reconstructed events found = " << recCtr << endl;
+    cout<<"Generated events found = " << genCtr << endl;
     float timeStop = clock();
     PrintAnalysisTime(timeStart,timeStop);
     return 0;
