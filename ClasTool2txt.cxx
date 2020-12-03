@@ -95,7 +95,7 @@ int main(int argc, char **argv)
             case 't': tgt_key = atoi(optarg); break;
             case 'S': simul_key = true; break;
             case 'i': bBatchMode = true; break;
-            case 'h':
+            case 'h':k
                 PrintUsage(argv[0]);
                 exit(0);
                 break;
@@ -134,13 +134,10 @@ int main(int argc, char **argv)
 
     input->Next();
 
-    k = 0; // event counter
-
     if(MaxEvents == 0) MaxEvents = nEntries; // if user does not set max. number of events, set to nEntries
 
-    while (k < MaxEvents) {
-    	if (!bBatchMode && ((k % dEvents) == 0)) cerr << k << "\r";
-
+    for(k=0; k < MaxEvents; k++) {
+    	if (!bBatchMode && ((k % dEvents) == 0)) cerr << k << "\r"; // print the event number
       for(kind=0; kind<simTypes; kind++){
         elecIndex.clear(); // clear out the electron list
         gamIndex.clear(); // clear out the photon list
@@ -177,7 +174,6 @@ int main(int argc, char **argv)
           } // if to check topology and cuts
         } // if to check nRows > minRows
       } // for loop for kind counter
-      k++; // increment event counter
       cout<<"A"<<endl;
       input->Next();
       cout<<"B"<<endl;
