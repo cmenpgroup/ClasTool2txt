@@ -109,7 +109,7 @@ int main(int argc, char **argv)
     }
 
     ofstream txtOut;
-    txtOut.open(outfile.c_str());
+    txtOut.open(outFile.c_str());
 
     // check target selection
     switch(tgt_key){
