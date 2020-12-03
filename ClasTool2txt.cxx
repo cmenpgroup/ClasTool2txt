@@ -95,7 +95,7 @@ int main(int argc, char **argv)
             case 't': tgt_key = atoi(optarg); break;
             case 'S': simul_key = true; break;
             case 'i': bBatchMode = true; break;
-            case 'h':k
+            case 'h':
                 PrintUsage(argv[0]);
                 exit(0);
                 break;
@@ -190,7 +190,6 @@ void PrintUsage(char *processName)
     cerr << "\t-o<filename>\tROOT output file (def. = f1.root).\n";
     cerr << "\t-M#\t\tprocess maximum # of events.\n";
     cerr << "\t-D#\t\tinform user when # of events have been processed (def. = 1000).\n";
-    cerr << "\t-c#\t\tType in categoization # scheme of 0=EVNT or 1=Full (def. = 0).\n";
     cerr << "\t-t#\t\tTarget # of 1=C, 2=Fe, or 3=Pb (def. = 1).\n";
     cerr << "\t-S\t\tAnalyze simulation.\n";
     cerr << "\t-i\t\tquiet mode (no counter).\n";
