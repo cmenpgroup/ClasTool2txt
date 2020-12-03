@@ -108,6 +108,9 @@ int main(int argc, char **argv)
         }
     }
 
+    ofstream txtOut;
+    txtOut.open(outfile.c_str());
+
     // check target selection
     switch(tgt_key){
         case 1: target = "C"; break;
@@ -159,9 +162,9 @@ int main(int argc, char **argv)
             }else{
               myVertex = t->GetCorrectedVert();
             }
-            cout << (Int_t) t->NEvent() << "\t" << kind << endl;
+            txtOut << (Int_t) t->NEvent() << "\t" << kind << endl;
             for (j = 0; j < nRows; j++) {
-              cout << setw(10) << (Int_t) t->Id(j, kind)
+              txtOut << setw(10) << (Int_t) t->Id(j, kind)
 		            << fixed << setprecision(5)
                 << setw(10) << t->Betta(j, kind)
                 << setprecision(3)
@@ -177,6 +180,7 @@ int main(int argc, char **argv)
       } // for loop for kind counter
       input->Next(); // load the next event
     }
+    txtOut.close();
     float timeStop = clock();
     PrintAnalysisTime(timeStart,timeStop);
     return 0;
